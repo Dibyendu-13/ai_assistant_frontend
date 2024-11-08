@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { AppContainer, Title, UploadButton } from './App_Styling.js'; // Adjust the path as needed
-
+import { AppContainer, Title, UploadButton } from './App_Styling.js'; 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io('http://localhost:4000'); // Ensure this matches your server's URL
+const socket = io('https://ebaf-43-241-194-168.ngrok-free.app', {
+    secure: true,
+    transports: ['websocket'],
+});
+
 
 
 
@@ -43,7 +46,7 @@ const HumeVoiceInteraction = () => {
             setAudioSrc(audioData);
             toast.success('Received audio output!');
             
-            // Reset after receiving output
+            
             setTranscribedText('');
             setIsRecording(false);
         });
@@ -63,12 +66,14 @@ const HumeVoiceInteraction = () => {
     };
 
     const stopRecording = () => {
+
+        socket.emit('userInput', transcribedText);
         if (recognitionRef.current) {
 
             recognitionRef.current.stop();
             
            
-            socket.emit('userInput', transcribedText);
+            
             toast.info('Recording stopped. Transcription will be sent.');
         }
     };
@@ -83,7 +88,7 @@ const HumeVoiceInteraction = () => {
             const formData = new FormData();
             formData.append('file', pdfFile);
 
-            fetch('http://localhost:4000/upload-pdf', {
+            fetch('https://ebaf-43-241-194-168.ngrok-free.app/upload-pdf', {
                 method: 'POST',
                 body: formData,
             })
@@ -127,15 +132,15 @@ const HumeVoiceInteraction = () => {
                 <audio controls src={audioSrc} autoPlay />
             )}
             <ToastContainer 
-                position="top-center" // Position of the notifications
-                autoClose={5000} // Duration for which the notification will be displayed
-                hideProgressBar={false} // Show progress bar
-                newestOnTop={false} // New notifications appear below
-                closeOnClick // Close on click
-                rtl={false} // Right to left layout
-                pauseOnFocusLoss // Pause on window focus loss
-                draggable // Allow dragging
-                pauseOnHover // Pause on hover
+                position="top-center" 
+                autoClose={5000} 
+                hideProgressBar={false} 
+                newestOnTop={false} 
+                closeOnClick 
+                rtl={false} 
+                pauseOnFocusLoss 
+                draggable 
+                pauseOnHover 
             />
         </AppContainer>
     );
