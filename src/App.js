@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { AppContainer, Title, UploadButton, InputField, TranscribedText, AudioControls } from './App_Styling.js'; // Adjust the path as needed
+import { AppContainer, Title, UploadButton } from './App_Styling.js'; // Adjust the path as needed
 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
