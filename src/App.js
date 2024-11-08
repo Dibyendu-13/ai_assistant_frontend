@@ -67,6 +67,7 @@ const HumeVoiceInteraction = () => {
 
     const stopRecording = () => {
 
+        setIsRecording(false)
         socket.emit('userInput', transcribedText);
         if (recognitionRef.current) {
 
