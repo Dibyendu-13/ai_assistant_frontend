@@ -9,9 +9,6 @@ const socket = io('https://4fba-43-241-194-108.ngrok-free.app', {
     transports: ['websocket'],
 });
 
-
-
-
 const HumeVoiceInteraction = () => {
     const [transcribedText, setTranscribedText] = useState('');
     const [audioSrc, setAudioSrc] = useState('');
@@ -45,8 +42,6 @@ const HumeVoiceInteraction = () => {
             const audioData = `data:audio/wav;base64,${audioBase64}`;
             setAudioSrc(audioData);
             toast.success('Received audio output!');
-            
-            
             setTranscribedText('');
             setIsRecording(false);
         });
@@ -58,27 +53,32 @@ const HumeVoiceInteraction = () => {
     }, []);
 
     const startRecording = () => {
-        if (recognitionRef.current) {
-            recognitionRef.current.start();
-            setIsRecording(true);
-            toast.success('Recording started...');
+        if (!recognitionRef.current) {
+            toast.error('Speech recognition is not available in this browser.');
+            return;
         }
+
+        // Request microphone access
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(() => {
+                recognitionRef.current.start();
+                setIsRecording(true);
+                toast.success('Recording started...');
+            })
+            .catch((err) => {
+                console.error('Microphone access denied:', err);
+                toast.error('Microphone access denied. Please allow microphone access.');
+            });
     };
 
     const stopRecording = () => {
-
-        setIsRecording(false)
+        setIsRecording(false);
         socket.emit('userInput', transcribedText);
         if (recognitionRef.current) {
-
             recognitionRef.current.stop();
-            
-           
-            
             toast.info('Recording stopped. Transcription will be sent.');
         }
     };
-
 
     const handlePdfUpload = (event) => {
         setPdfFile(event.target.files[0]);
