@@ -1,20 +1,43 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { AppContainer, Title, UploadButton } from './App_Styling.js'; 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io('https://4fba-43-241-194-108.ngrok-free.app', {
+const socket = io('http://localhost:4000', {
     secure: true,
     transports: ['websocket'],
 });
 
 const HumeVoiceInteraction = () => {
     const [transcribedText, setTranscribedText] = useState('');
-    const [audioSrc, setAudioSrc] = useState('');
+    const [audioQueue, setAudioQueue] = useState([]); // Queue to hold audio data
     const [pdfFile, setPdfFile] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
+    const isPlayingAudio = useRef(false); // Track if audio is currently playing
     const recognitionRef = useRef(null);
+
+    const playNextAudio = useCallback(async () => {
+        if (audioQueue.length === 0) return;
+
+        isPlayingAudio.current = true; // Mark as playing
+        const nextAudioSrc = audioQueue[0]; // Get the next audio in the queue
+
+        const audio = new Audio(nextAudioSrc);
+        audio.onended = () => {
+            setAudioQueue((prevQueue) => prevQueue.slice(1)); // Remove the played audio
+            isPlayingAudio.current = false; // Mark as ready for the next audio
+        };
+
+        try {
+            await audio.play();
+        } catch (error) {
+            console.error('Error playing audio:', error);
+            toast.error('Error playing audio.');
+            setAudioQueue((prevQueue) => prevQueue.slice(1)); // Remove the errored audio
+            isPlayingAudio.current = false;
+        }
+    }, [audioQueue]);
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -40,7 +63,7 @@ const HumeVoiceInteraction = () => {
 
         socket.on('audioOutput', (audioBase64) => {
             const audioData = `data:audio/wav;base64,${audioBase64}`;
-            setAudioSrc(audioData);
+            setAudioQueue((prevQueue) => [...prevQueue, audioData]); // Add to the queue
             toast.success('Received audio output!');
             setTranscribedText('');
             setIsRecording(false);
@@ -51,6 +74,13 @@ const HumeVoiceInteraction = () => {
             socket.off('error');
         };
     }, []);
+
+    useEffect(() => {
+        // Play audio sequentially from the queue
+        if (!isPlayingAudio.current && audioQueue.length > 0) {
+            playNextAudio();
+        }
+    }, [audioQueue, playNextAudio]);
 
     const startRecording = () => {
         if (!recognitionRef.current) {
@@ -89,7 +119,7 @@ const HumeVoiceInteraction = () => {
             const formData = new FormData();
             formData.append('file', pdfFile);
 
-            fetch('https://4fba-43-241-194-108.ngrok-free.app/upload-pdf', {
+            fetch('http://localhost:4000/upload-pdf', {
                 method: 'POST',
                 body: formData,
             })
@@ -129,8 +159,8 @@ const HumeVoiceInteraction = () => {
             {transcribedText && (
                 <p style={{ marginTop: '20px', fontSize: '1.2rem' }}>Transcribed Text: {transcribedText}</p>
             )}
-            {audioSrc && (
-                <audio controls src={audioSrc} autoPlay />
+            {audioQueue.length > 0 && (
+                <p style={{ marginTop: '20px', fontSize: '1rem' }}>Queued Audio: {audioQueue.length}</p>
             )}
             <ToastContainer 
                 position="top-center" 
