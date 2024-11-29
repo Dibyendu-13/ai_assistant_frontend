@@ -4,7 +4,7 @@ import { AppContainer, Title, UploadButton } from './App_Styling.js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io('https://ebaf-43-241-194-168.ngrok-free.app', {
+const socket = io('https://4fba-43-241-194-108.ngrok-free.app', {
     secure: true,
     transports: ['websocket'],
 });
@@ -89,7 +89,7 @@ const HumeVoiceInteraction = () => {
             const formData = new FormData();
             formData.append('file', pdfFile);
 
-            fetch('https://ebaf-43-241-194-168.ngrok-free.app/upload-pdf', {
+            fetch('https://4fba-43-241-194-108.ngrok-free.app/upload-pdf', {
                 method: 'POST',
                 body: formData,
             })
