@@ -4,7 +4,7 @@ import { AppContainer, Title, UploadButton } from './App_Styling.js';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const socket = io('https://d0b2-43-241-193-204.ngrok-free.app', {
+const socket = io('https://backend-rag-8com.onrender.com', {
     secure: true,
     transports: ['websocket'],
 });
@@ -119,7 +119,7 @@ const HumeVoiceInteraction = () => {
             const formData = new FormData();
             formData.append('file', pdfFile);
 
-            fetch('https://d0b2-43-241-193-204.ngrok-free.app/upload-pdf', {
+            fetch('https://backend-rag-8com.onrender.com/upload-pdf', {
                 method: 'POST',
                 body: formData,
             })
